@@ -1,0 +1,8 @@
+package idiomApp
+
+
+
+func main() {
+
+}
+
