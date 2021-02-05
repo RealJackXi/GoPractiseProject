@@ -1,7 +1,6 @@
 package idiomApp
 
 
-
 func main() {
 
 }
