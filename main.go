@@ -27,9 +27,7 @@ func SelectApp(name string)ReturnFun{
 
 func main() {
 	appName:=flag.String("p","默认值","调用那个项目")
-	arg1:=flag.String("arg1","ambiguous","idiom_app参数")
-	arg2:=flag.String("arg2","keyword","idiom_app参数")
 	flag.Parse()
-	SelectApp(*appName)(*arg1,*arg2)
+	SelectApp(*appName)()
 
 }

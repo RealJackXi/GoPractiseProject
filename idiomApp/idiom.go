@@ -8,6 +8,7 @@ import (
 	yaml "gopkg.in/yaml.v2"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // 读取配置
@@ -52,7 +53,6 @@ func NewIdiom()*Idiom{
 var idiomsMap map[string]Idiom
 
 func GetJson(url string)(jsonStr []byte,err error){
-	fmt.Printf("url是%s\n",url)
 	resp,err:=http.Get(url)
 	defer resp.Body.Close()
 	if err!=nil{
@@ -104,9 +104,59 @@ func LoadRemoteData()error{
 	return ReadIdiomsFromFile(path)
 }
 
+func DoAmbiguousQuery(keyword string,arg interface{}){
+	//chanAccurate chan <- string,
+
+	allIdiomNames,err:=GetJson(con.IdiomsUrl)
+	if err!=nil{
+		fmt.Println(err)
+	}
+	tempMap:=make(map[string]interface{})
+	err =json.Unmarshal(allIdiomNames,&tempMap)
+	if err!=nil{
+		fmt.Println(err)
+	}
+	dataSlice:= tempMap["data"].([]interface{})
+	for _,v:= range dataSlice{
+		title:=v.(map[string]interface{})["title"].(string)
+		if !strings.Contains(title,keyword){
+			continue
+		}
+		idiom:= Idiom{Title: title}
+		idiomsMap[title] = idiom
+		if passerWay,ok:=arg.(chan string);ok{
+			passerWay<-title
+			continue
+		}
+		if passerWay,ok:=arg.(*Result);ok{
+			passerWay.Append(title)
+		}
+	}
+
+}
+
+func DoAccurateQuery(keyword string,arg interface{}){
+	allIdiomNames,_:=GetJson(con.IdiomUrl+keyword)
+	s:= struct {
+		Status int `json:"status"`
+	}{}
+	err:=json.Unmarshal(allIdiomNames,&s)
+	if err != nil || s.Status == -1{
+		return
+	}
+	idioms:=NewIdiom()
+	err = json.Unmarshal(allIdiomNames,idioms)
+	if err==nil{
+		idiomsMap[keyword] = *idioms
+	}
+	if passerWay,ok:=arg.(*Result);ok{
+		passerWay.Append(idioms)
+	}
+}
+
 func IsDataExist()(bool,string){
 	curDir,_:=os.Getwd()
-	curDataPath:=filepath.Join(curDir,"data.json")
+	curDataPath:=filepath.Join(curDir,"idiom.json")
 	_,err:=os.Stat(curDataPath)
 	if os.IsExist(err) || err == nil{
 		return true,curDataPath
@@ -140,3 +190,4 @@ func init(){
 	// 远程加载数据
 	LoadInit()
 }
+
