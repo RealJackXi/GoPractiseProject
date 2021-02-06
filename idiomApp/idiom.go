@@ -50,7 +50,7 @@ func NewIdiom()*Idiom{
 	return &Idiom{}
 }
 
-var idiomsMap map[string]Idiom
+var idiomsMap = make(map[string]Idiom,0)
 
 func GetJson(url string)(jsonStr []byte,err error){
 	resp,err:=http.Get(url)
@@ -63,45 +63,13 @@ func GetJson(url string)(jsonStr []byte,err error){
 	return respBytes,nil
 }
 
-func LoadDetailIdiom(title string){
-	allIdiomNames,_:=GetJson(con.IdiomUrl+title)
-	s:= struct {
-		Status int `json:"status"`
-	}{}
-	err:=json.Unmarshal(allIdiomNames,&s)
-	if err != nil || s.Status == -1{
-		return
-	}
-	idioms:=NewIdiom()
-	err = json.Unmarshal(allIdiomNames,idioms)
-	if err==nil{
-		idiomsMap[title] = *idioms
-	}
-}
 
-func LoadRemoteData()error{
-	idiomsMap = make(map[string]Idiom)
+func LoadLocalData(){
 	isExist,path:= IsDataExist()
-	if !isExist{
-		allIdiomNames,_:=GetJson(con.IdiomsUrl)
-		tempMap:=make(map[string]interface{})
-		err:=json.Unmarshal(allIdiomNames,&tempMap)
-		if err!=nil{
-			fmt.Println(err)
-		}
-		dataSlice:= tempMap["data"].([]interface{})
-		for _,v:= range dataSlice{
-			title:=v.(map[string]interface{})["title"].(string)
-			idiom:= Idiom{Title: title}
-			idiomsMap[title] = idiom
-		}
-		// 加载详情页
-		for k,_:= range idiomsMap{
-			LoadDetailIdiom(k)
-		}
-		return nil
+	if isExist{
+		 err:=ReadIdiomsFromFile(path)
+		 fmt.Printf("读取本地数据出错%s\n",err)
 	}
-	return ReadIdiomsFromFile(path)
 }
 
 func DoAmbiguousQuery(keyword string,arg interface{}){
@@ -122,8 +90,6 @@ func DoAmbiguousQuery(keyword string,arg interface{}){
 		if !strings.Contains(title,keyword){
 			continue
 		}
-		idiom:= Idiom{Title: title}
-		idiomsMap[title] = idiom
 		if passerWay,ok:=arg.(chan string);ok{
 			passerWay<-title
 			continue
@@ -175,19 +141,9 @@ func WriteIdioms2File(path string){
 	fmt.Println("写出jsonwen文件成功")
 }
 
-func LoadInit(){
-	err:=LoadRemoteData()
-	if err!=nil{
-		fmt.Println("加载数据失败\n",err)
-		os.Exit(1)
-	}
-	WriteIdioms2File(con.IdiomPath)
-}
 
 func init(){
-	// 初始化的时候，加载配置
 	GetCon()
-	// 远程加载数据
-	LoadInit()
+	LoadLocalData()
 }
 

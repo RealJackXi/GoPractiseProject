@@ -101,5 +101,7 @@ func Run(args ...interface{}) {
 		finalData.Show()
 	}
 	<- sg
+	// 程序退出时将数据保存到本地文件
+	WriteIdioms2File(con.IdiomPath)
 }
 
