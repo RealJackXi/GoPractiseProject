@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -28,6 +29,8 @@ var (
 )
 
 func Batch(keyword string,data2show *Result){
+	var mu sync.WaitGroup
+	mu.Add(1)
 	keywords:=strings.Split(keyword,",")
 	for _,v:= range keywords{
 		chanAmbiguous <- v
@@ -46,8 +49,9 @@ func Batch(keyword string,data2show *Result){
 				goto exit
 			}
 		}
-		exit:
-			fmt.Println("退出多线程\n")
+	exit:
+		fmt.Println("退出多线程\n")
+
 	}
 	go ControlG()
 	timer:=time.NewTimer(10*time.Second)
@@ -101,7 +105,6 @@ func Run(args ...interface{}) {
 		finalData.Show()
 	}
 	<- sg
-	// 程序退出时将数据保存到本地文件
+	//程序关闭时，将缓存加载到文件中
 	WriteIdioms2File(con.IdiomPath)
 }
-

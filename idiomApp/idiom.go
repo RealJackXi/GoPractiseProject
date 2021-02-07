@@ -64,13 +64,6 @@ func GetJson(url string)(jsonStr []byte,err error){
 }
 
 
-func LoadLocalData(){
-	isExist,path:= IsDataExist()
-	if isExist{
-		 err:=ReadIdiomsFromFile(path)
-		 fmt.Printf("读取本地数据出错%s\n",err)
-	}
-}
 
 func DoAmbiguousQuery(keyword string,arg interface{}){
 	//chanAccurate chan <- string,
@@ -84,9 +77,8 @@ func DoAmbiguousQuery(keyword string,arg interface{}){
 	if err!=nil{
 		fmt.Println(err)
 	}
-	dataSlice:= tempMap["data"].([]interface{})
-	for _,v:= range dataSlice{
-		title:=v.(map[string]interface{})["title"].(string)
+	dataSlice:= strings.Split(tempMap["data"].(string),",")
+	for _,title:= range dataSlice{
 		if !strings.Contains(title,keyword){
 			continue
 		}
@@ -108,6 +100,7 @@ func DoAccurateQuery(keyword string,arg interface{}){
 	}{}
 	err:=json.Unmarshal(allIdiomNames,&s)
 	if err != nil || s.Status == -1{
+		fmt.Printf("数据不存在%s\n",keyword)
 		return
 	}
 	idioms:=NewIdiom()
@@ -141,9 +134,18 @@ func WriteIdioms2File(path string){
 	fmt.Println("写出jsonwen文件成功")
 }
 
-
-func init(){
-	GetCon()
-	LoadLocalData()
+func LoadLocalData(){
+	//ReadIdiomsFromFile(path)
+	isExist,path:= IsDataExist()
+	if isExist{
+		err:=ReadIdiomsFromFile(path)
+		fmt.Println("加载数据出错",err)
+	}
 }
 
+func init(){
+	// 初始化的时候，加载配置
+	GetCon()
+	// 远程加载数据
+	LoadLocalData()
+}
