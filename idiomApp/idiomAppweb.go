@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func JsonToMap(idioms []Idiom)map[string]interface{}{
@@ -23,15 +24,7 @@ func ReturnIdiom(c *gin.Context){
 		c.JSON(200,gin.H{})
 		return
 	}
-	curDir,_:= os.Getwd()
-	pat:=filepath.Join(curDir,"idiomApp","idiom.json")
-	file,_:=os.Open(pat)
-	defer file.Close()
-	idioms:=[]Idiom{}
-	err:=json.NewDecoder(file).Decode(&idioms)
-	if err!=nil{
-		fmt.Println(err)
-	}
+	idioms:= LoadAllIdioms()
 	idiomsmap:=JsonToMap(idioms)
 	if d,ok:=idiomsmap[key];ok{
 		c.JSON(200,d)
@@ -41,9 +34,28 @@ func ReturnIdiom(c *gin.Context){
 }
 
 func IdiomsList(c *gin.Context){
-	datas:= "{\n    \"total\": 105,\n    \"last_page\": 11,\n    \"ret_code\": 0,\n    \"ret_message\": \"Success\",\n    \"data\": [\n      {\n        \"title\": \"皮开肉绽\"\n      },\n      {\n        \"title\": \"白骨再肉\"\n      },\n      {\n        \"title\": \"髀里肉生\"\n      },\n      {\n        \"title\": \"髀肉复生\"\n      },\n      {\n        \"title\": \"不吃羊肉空惹一身膻\"\n      },\n      {\n        \"title\": \"不知肉味\"\n      },\n      {\n        \"title\": \"臭肉来蝇\"\n      },\n      {\n        \"title\": \"肥鱼大肉\"\n      },\n      {\n        \"title\": \"凡夫肉眼\"\n      },\n      {\n        \"title\": \"凡胎肉眼\"\n      }\n    ]\n  }"
-	c.String(200,datas)
+	idioms:=LoadAllIdioms()
+	idiomsName:=[]string{}
+	for _,v:= range idioms{
+		idiomsName = append(idiomsName,v.Title)
+	}
+	c.JSON(200,gin.H{"data":strings.Join(idiomsName,",")})
 }
+
+func LoadAllIdioms()[]Idiom{
+	curDir,_:= os.Getwd()
+	pat:=filepath.Join(curDir,"idiomApp","idiom.json")
+	file,_:=os.Open(pat)
+	defer file.Close()
+	idioms:=[]Idiom{}
+	err:=json.NewDecoder(file).Decode(&idioms)
+	if err!=nil{
+		fmt.Println(err)
+	}
+	return idioms
+}
+
+
 
 func Start(quit chan os.Signal) {
 	g:=gin.New()
@@ -53,11 +65,11 @@ func Start(quit chan os.Signal) {
 		Addr: ":80",
 		Handler: g,
 	}
+	fmt.Println("neng")
 	go func(){
 		if err:=srv.ListenAndServe();err!=nil && err!=http.ErrServerClosed{
 			fmt.Println(err)
 		}
 	}()
 	<- quit
-	fmt.Println("后台程序退出")
 }
