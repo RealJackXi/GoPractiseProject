@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"goPractiseProject/driverexam"
 	idiomApp "goPractiseProject/idiomApp"
 )
 
@@ -18,6 +19,8 @@ type ReturnFun func(args ...interface{})
 
 func SelectApp(name string)ReturnFun{
 	switch name {
+	case "driverExam":
+		return driverexam.Run
 	case "idiomApp":
 		return idiomApp.Run
 	default:
@@ -29,5 +32,8 @@ func main() {
 	appName:=flag.String("p","默认值","调用那个项目")
 	flag.Parse()
 	SelectApp(*appName)()
+	//rand.Seed(time.Now().UnixNano())
+	//num:= rand.Intn(8)
+	//fmt.Println(num)
 
 }
