@@ -28,6 +28,13 @@ func SelectApp(name string)ReturnFun{
 	}
 }
 
+type ExamScore struct {
+	Id    int    `db:"id"`
+	Name  string `db:"name"`
+	Score int    `db:"score"`
+}
+
+
 func main() {
 	appName:=flag.String("p","默认值","调用那个项目")
 	flag.Parse()
