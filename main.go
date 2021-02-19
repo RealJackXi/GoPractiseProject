@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"goPractiseProject/chatRoom"
 	"goPractiseProject/driverexam"
 	idiomApp "goPractiseProject/idiomApp"
 )
@@ -23,6 +24,10 @@ func SelectApp(name string)ReturnFun{
 		return driverexam.Run
 	case "idiomApp":
 		return idiomApp.Run
+	case "chatClient":
+		return chatRoom.RunClient
+	case "chatServer":
+		return chatRoom.RunServer
 	default:
 		return Anonymous
 	}
