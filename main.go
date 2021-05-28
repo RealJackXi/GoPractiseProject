@@ -6,6 +6,8 @@ import (
 	"goPractiseProject/chatRoom"
 	"goPractiseProject/driverexam"
 	idiomApp "goPractiseProject/idiomApp"
+	PCode "goPractiseProject/interview/alternate_print_digtial_letter"
+	UniqueString "goPractiseProject/interview/isLettereAllDifferent"
 )
 
 
@@ -28,6 +30,12 @@ func SelectApp(name string)ReturnFun{
 		return chatRoom.RunClient
 	case "chatServer":
 		return chatRoom.RunServer
+	case "printCode1":
+		return PCode.Run1
+	case "printCode2":
+		return PCode.Run2
+	case "stringAllDifferent":
+		return UniqueString.Run1
 	default:
 		return Anonymous
 	}
@@ -42,8 +50,9 @@ type ExamScore struct {
 
 func main() {
 	appName:=flag.String("p","默认值","调用那个项目")
+	arg:=flag.String("arg","参数","参数")
 	flag.Parse()
-	SelectApp(*appName)()
+	SelectApp(*appName)(arg)
 	//rand.Seed(time.Now().UnixNano())
 	//num:= rand.Intn(8)
 	//fmt.Println(num)
